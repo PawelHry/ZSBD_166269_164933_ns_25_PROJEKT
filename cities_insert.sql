@@ -1,0 +1,11 @@
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Warszawa', 52.229676, 21.012229);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Kraków',   50.064651, 19.944981);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Wrocław',  51.107883, 17.038538);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Poznań',   52.406376, 16.925167);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Gdańsk',   54.352025, 18.646638);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Łódź',     51.759248, 19.455983);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Szczecin', 53.428543, 14.552812);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Lublin',   51.246453, 22.568446);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Białystok',53.132489, 23.168840);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Katowice', 50.264892, 19.023782);
+INSERT INTO cities (city_name, latitude, longitude) VALUES ('Olsztyn',  53.778422, 20.480119);
