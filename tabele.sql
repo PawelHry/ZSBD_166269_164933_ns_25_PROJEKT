@@ -66,7 +66,7 @@ CREATE TABLE weather (
     precipitation_mm   NUMBER,
     wind_speed_kmh      NUMBER,
 
-    CONSTRAINT weather_city_fk FOREIGN KEY (city_id) REFERENCES cities(city_id),
+    CONSTRAINT weather_city_fk FOREIGN KEY (city_id) REFERENCES cities(city_id) ON DELETE CASCADE,
     CONSTRAINT weather_raw_fk  FOREIGN KEY (raw_id)  REFERENCES raw_import(raw_id),
 
     CONSTRAINT weather_uq UNIQUE (city_id, observed_at_utc),
@@ -106,13 +106,49 @@ CREATE TABLE logs (
 
     CONSTRAINT logs_level_chk  CHECK (log_level IN ('INFO','WARN','ERROR')),
     CONSTRAINT logs_result_chk CHECK (result IN ('OK','FAIL','SKIP')),
-
-    CONSTRAINT logs_city_fk    FOREIGN KEY (city_id)    REFERENCES cities(city_id),
-    CONSTRAINT logs_raw_fk     FOREIGN KEY (raw_id)     REFERENCES raw_import(raw_id),
-    CONSTRAINT logs_weather_fk FOREIGN KEY (weather_id) REFERENCES weather(weather_id)
 );
 
 CREATE INDEX logs_time_ix    ON logs(log_time);
 CREATE INDEX logs_action_ix  ON logs(action);
 CREATE INDEX logs_level_ix   ON logs(log_level);
 CREATE INDEX logs_run_id_ix  ON logs(run_id);
+
+
+CREATE TABLE cities_archive (
+    archive_id     NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    archived_at    TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
+    archived_by    VARCHAR2(128) DEFAULT SYS_CONTEXT('USERENV','SESSION_USER') NOT NULL,
+    
+    city_id       NUMBER NOT NULL,
+    city_name     VARCHAR2(100) NOT NULL,
+    country_code  VARCHAR2(2)   NOT NULL,
+    latitude      NUMBER(9,6)   NOT NULL,
+    longitude     NUMBER(9,6)   NOT NULL,
+    timezone_name VARCHAR2(64)  NOT NULL,
+    is_active     NUMBER(1)     NOT NULL
+);
+
+CREATE INDEX cities_archive_city_ix ON cities_archive(city_id);
+CREATE INDEX cities_archive_time_ix ON cities_archive(archived_at);
+
+
+CREATE TABLE weather_archive (
+    archive_id     NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    archived_at    TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
+    archived_by    VARCHAR2(128) DEFAULT SYS_CONTEXT('USERENV','SESSION_USER') NOT NULL,
+
+    weather_id         NUMBER NOT NULL,
+    city_id            NUMBER NOT NULL,
+    raw_id             NUMBER NOT NULL,
+
+    observed_at_utc    TIMESTAMP NOT NULL,
+    utc_offset_seconds NUMBER NOT NULL,
+
+    temperature_c      NUMBER,
+    humidity_pct       NUMBER,
+    precipitation_mm   NUMBER,
+    wind_speed_kmh     NUMBER
+);
+
+CREATE INDEX weather_archive_city_ix ON weather_archive(city_id);
+CREATE INDEX weather_archive_time_ix ON weather_archive(observed_at_utc);
