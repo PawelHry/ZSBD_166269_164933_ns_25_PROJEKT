@@ -17,9 +17,13 @@ SELECT * FROM cities WHERE city_name = 'Testowo';
 SELECT * FROM logs  WHERE action LIKE 'CITY_%' ORDER BY log_id DESC FETCH FIRST 20 ROWS ONLY;
 
 
+DECLARE
+  v_id NUMBER; 
 BEGIN
+  SELECT city_id INTO v_id FROM cities WHERE city_name = 'Testowo';
+
   pkg_cities.city_update(
-    p_city_id => (SELECT city_id FROM cities WHERE city_name = 'Testowo'),
+    p_city_id => v_id,
     p_city_name => 'Testowo2',
     p_timezone_name => 'Europe/Warsaw'
   );
@@ -30,9 +34,12 @@ SELECT * FROM cities WHERE city_name LIKE 'Testowo%';
 SELECT * FROM logs  WHERE action LIKE 'CITY_%' ORDER BY log_id DESC FETCH FIRST 20 ROWS ONLY;
 
 
+DECLARE
+  v_id NUMBER;
 BEGIN
+  SELECT city_id INTO v_id FROM cities WHERE city_name = 'Testowo2';
   pkg_cities.city_set_active(
-    p_city_id => (SELECT city_id FROM cities WHERE city_name = 'Testowo2'),
+    p_city_id => v_id,
     p_is_active => 0
   );
 END;
@@ -42,9 +49,12 @@ SELECT city_id, city_name, is_active FROM cities WHERE city_name = 'Testowo2';
 SELECT * FROM logs ORDER BY log_id DESC FETCH FIRST 20 ROWS ONLY;
 
 
+DECLARE
+  v_id NUMBER;
 BEGIN
+  SELECT city_id INTO v_id FROM cities WHERE city_name = 'Testowo2';
   pkg_cities.city_delete(
-    p_city_id => (SELECT city_id FROM cities WHERE city_name = 'Testowo2'),
+    p_city_id => v_id,
     p_reason => 'sprzątanie po teście'
   );
 END;
