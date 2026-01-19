@@ -15,3 +15,10 @@ FROM weather w
 JOIN cities c ON w.city_id = c.city_id
 ORDER BY observed_at_utc DESC
 FETCH FIRST 5 ROWS ONLY;
+
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(
+        get_full_climate_stats('Olsztyn', SYSDATE - 7, SYSDATE)
+    );
+END;
+/

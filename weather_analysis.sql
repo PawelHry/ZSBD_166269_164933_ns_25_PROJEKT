@@ -311,3 +311,54 @@ BEGIN
     END IF;
 END;
 /
+
+CREATE OR REPLACE FUNCTION get_full_climate_stats (
+    p_city_name IN VARCHAR2,
+    p_date_from IN DATE,
+    p_date_to   IN DATE
+) RETURN VARCHAR2 IS
+    v_count  NUMBER;
+    v_min    NUMBER;
+    v_max    NUMBER;
+    v_avg    NUMBER;
+    v_median NUMBER;
+    v_stddev NUMBER;
+    v_desc    VARCHAR2(100);
+BEGIN
+
+    SELECT 
+        COUNT(*),
+        MIN(temperature_c),
+        MAX(temperature_c),
+        ROUND(AVG(temperature_c), 1),
+        MEDIAN(temperature_c),
+        ROUND(STDDEV(temperature_c), 1)
+    INTO 
+        v_count, v_min, v_max, v_avg, v_median, v_stddev
+    FROM weather w
+    JOIN cities c ON w.city_id = c.city_id
+    WHERE c.city_name = p_city_name
+      AND w.observed_at_utc BETWEEN p_date_from AND p_date_to;
+
+
+    IF v_count = 0 THEN
+        RETURN 'Brak danych dla miasta ' || p_city_name || ' w podanym okresie.';
+    END IF;
+    
+    IF v_stddev < 1.5 THEN
+        v_desc := 'Bardzo Stabilna';
+    ELSIF v_stddev < 3.5 THEN
+        v_desc := 'Zmienna️';
+    ELSE
+        v_desc := 'Chaotyczna/';
+    END IF;
+
+
+   RETURN 'Statystyki dla miasta: ' || p_city_name || CHR(10) ||
+       'Zakres:     ' || v_min || '°C do ' || v_max || '°C' || CHR(10) ||
+       'Średnia:    ' || v_avg || '°C' || CHR(10) ||
+       'Mediana:    ' || v_median || '°C' || CHR(10) ||
+       'Odchylenie: +/-' || v_stddev || CHR(10) ||
+       'Ocena:      ' || v_desc;
+END;
+/
