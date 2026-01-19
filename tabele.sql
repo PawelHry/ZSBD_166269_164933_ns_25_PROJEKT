@@ -105,7 +105,7 @@ CREATE TABLE logs (
     details       CLOB,
 
     CONSTRAINT logs_level_chk  CHECK (log_level IN ('INFO','WARN','ERROR')),
-    CONSTRAINT logs_result_chk CHECK (result IN ('OK','FAIL','SKIP')),
+    CONSTRAINT logs_result_chk CHECK (result IN ('OK','FAIL','SKIP'))
 );
 
 CREATE INDEX logs_time_ix    ON logs(log_time);
