@@ -1,5 +1,5 @@
-drop table weather_reports;
-/
+
+
 CREATE TABLE weather_reports (
     report_id        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     
@@ -39,20 +39,13 @@ CREATE OR REPLACE PROCEDURE generuj_raporty (
 ) IS
     v_start_date DATE;
     v_end_date   DATE;
-    v_avg_temp   NUMBER;
-    v_min_temp   NUMBER;
-    v_max_temp   NUMBER;
-    v_volatility NUMBER;
-    v_avg_wind   NUMBER;
-    v_max_wind   NUMBER;
-    v_days_wind  NUMBER;
-    v_days_dry   NUMBER;
-    v_days_opt   NUMBER;
-    v_days_hum   NUMBER;
-    v_avg_hum    NUMBER;
-    v_max_hum    NUMBER;
-    v_count      NUMBER;
+    
+    v_avg_temp   NUMBER; v_min_temp   NUMBER; v_max_temp   NUMBER; v_volatility NUMBER;
+    v_avg_wind   NUMBER; v_max_wind   NUMBER; v_days_wind  NUMBER;
+    v_days_dry   NUMBER; v_days_opt   NUMBER; v_days_hum   NUMBER;
+    v_avg_hum    NUMBER; v_max_hum    NUMBER; v_count      NUMBER;
 BEGIN
+
     IF UPPER(p_report_type) = 'WEEK' THEN
         v_start_date := TRUNC(p_target_date, 'IW');
         v_end_date   := TRUNC(p_target_date, 'IW') + 6.99999;
@@ -79,19 +72,33 @@ BEGIN
         FROM cities
         WHERE p_city_name IS NULL OR city_name = p_city_name
     ) LOOP
-        v_avg_temp   := funkcja_srednia_temp(c.city_name, v_start_date, v_end_date);
-        v_max_temp   := funkcja_max_temp(c.city_name, v_start_date, v_end_date);
-        v_min_temp   := funkcja_min_temp(c.city_name, v_start_date, v_end_date);
-        v_volatility := funkcja_odchylenie_temp(c.city_name, v_start_date, v_end_date);
-        v_avg_wind   := funkcja_avg_wind(c.city_name, v_start_date, v_end_date);
-        v_max_wind   := funkcja_max_wind(c.city_name, v_start_date, v_end_date);
+        
+        SELECT 
+            ROUND(AVG(temperature_c), 2),
+            MIN(temperature_c),
+            MAX(temperature_c),
+            ROUND(STDDEV(temperature_c), 2),
+            
+            ROUND(AVG(wind_speed_kmh), 2),
+            MAX(wind_speed_kmh),
+            
+            ROUND(AVG(humidity_pct), 2),
+            MAX(humidity_pct),
+            
+            COUNT(*)
+        INTO 
+            v_avg_temp, v_min_temp, v_max_temp, v_volatility,
+            v_avg_wind, v_max_wind,
+            v_avg_hum, v_max_hum,
+            v_count
+        FROM weather
+        WHERE city_id = c.city_id 
+          AND observed_at_utc BETWEEN v_start_date AND v_end_date;
+
         v_days_wind  := funkcja_dni_silny_wiatr(c.city_name, v_start_date, v_end_date);
         v_days_dry   := funkcja_dni_sucho(c.city_name, v_start_date, v_end_date);
         v_days_opt   := funkcja_dni_optimalnie(c.city_name, v_start_date, v_end_date);
         v_days_hum   := funkcja_dni_wilgotno(c.city_name, v_start_date, v_end_date);
-        v_avg_hum    := funkcja_srednia_wilgotnosc(c.city_name, v_start_date, v_end_date);
-        v_max_hum    := funkcja_max_wilgotnosc(c.city_name, v_start_date, v_end_date);
-        v_count      := funkcja_liczba_rekordow(c.city_name, v_start_date, v_end_date);
 
         IF v_count > 0 THEN
             INSERT INTO weather_reports (
