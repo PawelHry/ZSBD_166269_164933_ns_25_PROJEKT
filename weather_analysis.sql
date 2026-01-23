@@ -79,7 +79,7 @@ BEGIN
 
     v_predicted_now := konwertuj_temperature(v_predicted_now, p_jednostka);
 
-    DBMS_OUTPUT.PUT_LINE('=== STATUS: ' || UPPER(p_city_name) || ' ===');
+    DBMS_OUTPUT.PUT_LINE('PROGNOZA DLA MIASTA: ' || UPPER(p_city_name));
     DBMS_OUTPUT.PUT_LINE('Metoda prognozy:    ' || v_method);
     DBMS_OUTPUT.PUT_LINE('Czas obecny:        ' || TO_CHAR(SYSDATE, 'HH24:MI'));
     DBMS_OUTPUT.PUT_LINE('Ostatni pomiar:     ' || TO_CHAR(v_last_time, 'DD.MM HH24:MI') || ' (' || konwertuj_temperature(v_last_temp, p_jednostka) || ' ' || p_jednostka || ')');
@@ -87,7 +87,7 @@ BEGIN
     IF v_method LIKE 'HISTORIA%' THEN
         DBMS_OUTPUT.PUT_LINE('Znaleziono wpisów historycznych o tej porze: ' || v_hist_count);
     END IF;
-    DBMS_OUTPUT.PUT_LINE('>> SZACOWANA TEMP. TERAZ: ' || ROUND(v_predicted_now, 1) || ' ' || p_jednostka);
+    DBMS_OUTPUT.PUT_LINE('SZACOWANA TEMP. TERAZ: ' || ROUND(v_predicted_now, 1) || ' ' || p_jednostka);
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
@@ -139,7 +139,21 @@ CREATE OR REPLACE PROCEDURE monitoruj_wiatr (
 ) IS
     v_liczba_pomiarow NUMBER := 0;
     v_roznica NUMBER;
+    v_czy_sa_dane NUMBER;
 BEGIN
+
+    SELECT COUNT(*)
+    INTO v_czy_sa_dane
+    FROM weather w
+    JOIN cities c ON w.city_id = c.city_id
+    WHERE c.city_name = p_miasto
+    AND w.observed_at_utc >= SYSDATE - p_ostatnie_dni;
+    
+    IF v_czy_sa_dane = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Brak danych dla miasta: ' || p_miasto);
+        RETURN;
+    END IF;
+    
     DBMS_OUTPUT.PUT_LINE('ANALIZA WIATRU');
     DBMS_OUTPUT.PUT_LINE('Miasto:  ' || UPPER(p_miasto));
     DBMS_OUTPUT.PUT_LINE('Zakres:  Ostatnie ' || p_ostatnie_dni || ' dni');
@@ -241,7 +255,21 @@ CREATE OR REPLACE PROCEDURE ocena_wilgotnosci (
 ) IS
     v_grupa NUMBER;
     v_opis  VARCHAR2(50);
+    v_czy_sa_dane NUMBER;
 BEGIN
+
+    SELECT COUNT(*)
+    INTO v_czy_sa_dane
+    FROM weather w
+    JOIN cities c ON w.city_id = c.city_id
+    WHERE c.city_name = p_miasto
+    AND w.observed_at_utc >= SYSDATE - p_ostatnie_dni;
+    
+    IF v_czy_sa_dane = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Brak danych dla miasta: ' || p_miasto);
+        RETURN;
+    END IF;
+    
     DBMS_OUTPUT.PUT_LINE('OCENA WILGOTNOŚCI');
     DBMS_OUTPUT.PUT_LINE('Miasto: ' || UPPER(p_miasto));
     DBMS_OUTPUT.PUT_LINE('Zakres: Ostatnie ' || p_ostatnie_dni || ' dni');
