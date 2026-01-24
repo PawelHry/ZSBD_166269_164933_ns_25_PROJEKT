@@ -128,41 +128,32 @@ CREATE OR REPLACE TRIGGER trg_raporty_tylko_odczyt
 BEFORE UPDATE ON weather_reports
 FOR EACH ROW
 DECLARE
-
     PRAGMA AUTONOMOUS_TRANSACTION; 
 BEGIN
+    INSERT INTO logs (
+        log_level, 
+        source, 
+        action, 
+        result, 
+        city_id, 
+        error_message, 
+        db_user
+    ) VALUES (
+        'ERROR',                  
+        'TRIGGER_SECURITY',       
+        'UPDATE_ATTEMPT',         
+        'FAIL',                   
+        :OLD.city_id,             
+        'Próba ręcznej modyfikacji raportu!', 
+        USER                      
+    );
+    
+    COMMIT; 
 
-    IF :NEW.avg_temperature != :OLD.avg_temperature 
-       OR :NEW.max_wind != :OLD.max_wind 
-       OR :NEW.days_dry != :OLD.days_dry THEN
-       
-        INSERT INTO logs (
-            log_level, 
-            source, 
-            action, 
-            result, 
-            city_id, 
-            error_message, 
-            details,
-            db_user
-        ) VALUES (
-            'ERROR',                  
-            'TRIGGER_SECURITY',       
-            'UPDATE_ATTEMPT',         
-            'FAIL',                   
-            :OLD.city_id,             
-            'Próba ręcznej modyfikacji danych analitycznych!',
-            'Stara średnia temp: ' || :OLD.avg_temperature || 
-            ', Próba zmiany na: ' || :NEW.avg_temperature,   
-            USER                      
-        );
-        
-        COMMIT; 
-
-        RAISE_APPLICATION_ERROR(-20005, 'BŁĄD: Raporty są tylko do odczytu! Nie wolno ich edytować ręcznie.');
-    END IF;
+    RAISE_APPLICATION_ERROR(-20005, 'BŁĄD: Raporty są tylko do odczytu! Nie wolno ich edytować ręcznie.');
 END;
 /
+
 
 CREATE OR REPLACE VIEW v_raporty_miesieczne AS
 SELECT 
