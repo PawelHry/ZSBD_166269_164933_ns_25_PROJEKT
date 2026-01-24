@@ -98,12 +98,6 @@ def get_optional(obj: Mapping[str, object], key: str) -> object:
 
 
 def get_returning_int(var: oracledb.Var) -> int:
-    """
-    python-oracledb potrafi zwracać:
-    - [123]
-    - 123
-    - None
-    """
     value: object = var.getvalue()
 
     if isinstance(value, list):
